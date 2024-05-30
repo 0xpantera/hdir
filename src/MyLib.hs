@@ -20,3 +20,52 @@ dropSuffix suffix s
     | suffix `isSuffixOf` s = take (length s - length suffix) s
     | otherwise = s
 
+data FileType 
+    = FileTypeDirectory
+    | FileTypeRegular
+    | FileTypeOther
+
+classifyFile :: FilePath -> IO FileType
+classifyFile fname = do
+    isDirectory <- doesDirectoryExist fname
+    isFile <- doesFileExist fname
+    pure $ case (isDirectory, isFile) of
+                (True, False) -> FileTypeDirectory
+                (False, True) -> FileTypeRegular
+                _otherwise -> FileTypeOther
+
+traverseDir :: FilePath -> (FilePath -> IO ()) -> IO ()
+traverseDir root action = do
+    seenRef <- newIORef Set.empty
+    let
+        haveSeenDir canonicalPath =
+            Set.member canonicalPath <$> readIORef seenRef
+
+        addDirToSeen canonicalPath =
+             modifyIORef seenRef $ Set.insert canonicalPath
+
+        traverseSubDir subdirPath = do
+            contents <- listDirectory subdirPath
+            for_ contents $ \file' ->
+                handle @IOException (\_ -> pure ()) $ do
+                    let file = subdirPath <> "/" <> file'
+                    canonicalPath <- canonicalizePath file
+                    classification <- classifyFile canonicalPath
+                    case classification of
+                        FileTypeOther -> pure ()
+                        FileTypeRegular -> action file
+                        FileTypeDirectory -> do
+                            alreadyProcessed <- haveSeenDir file
+                            when (not alreadyProcessed) $ do
+                                addDirToSeen file
+                                traverseSubDir file
+    
+    traverseSubDir (dropSuffix "/" root)
+
+
+traverseDir' :: FilePath -> (FilePath -> a) -> IO [a]
+traverseDir' root action = do
+    resultsRef <- newIORef []
+    traverseDir root $ \file -> do
+        modifyIORef resultsRef (action file :)
+    readIORef resultsRef
