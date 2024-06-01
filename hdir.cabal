@@ -22,17 +22,19 @@ maintainer:         0xpantera@proton.me
 extra-source-files: CHANGELOG.md
 
 library
-    exposed-modules:  MyLib
+    exposed-modules: DirSummary
 
     -- Modules included in this library but not exported.
-    -- other-modules:
+    other-modules: Metrics
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:    base ^>=4.17.2.0
                     , directory
                     , containers
-                    , bytestring
+                    , bytestring    
+                    , time
+                    , text
     hs-source-dirs:   src
     default-language: Haskell2010
 
