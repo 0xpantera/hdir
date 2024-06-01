@@ -2,8 +2,9 @@
 module MyLib where
 
 import Control.Exception (IOException, handle)
-import Control.Monad (join, void, when)
+import Control.Monad (join, void, when, unless)
 import Data.Foldable (for_)
+import qualified Data.ByteString as BS
 import Data.IORef (modifyIORef, newIORef, readIORef, writeIORef)
 import Data.List (isSuffixOf)
 import System.Directory
@@ -56,7 +57,7 @@ traverseDir root action = do
                         FileTypeRegular -> action file
                         FileTypeDirectory -> do
                             alreadyProcessed <- haveSeenDir file
-                            when (not alreadyProcessed) $ do
+                            unless alreadyProcessed $ do
                                 addDirToSeen file
                                 traverseSubDir file
     
@@ -69,3 +70,18 @@ traverseDir' root action = do
     traverseDir root $ \file -> do
         modifyIORef resultsRef (action file :)
     readIORef resultsRef
+
+longestContents :: FilePath -> IO BS.ByteString
+longestContents root = do
+    contentsRef <- newIORef BS.empty
+    let
+        takeLongestFile a b =
+            if BS.length a >= BS.length b
+            then a
+            else b
+        
+    traverseDir root $ \file -> do
+        contents <- BS.readFile file
+        modifyIORef contentsRef (takeLongestFile contents)
+
+    readIORef contentsRef
