@@ -1,8 +1,9 @@
 module Main where
 
-import qualified MyLib (someFunc)
+import System.Environment (getArgs)
+
+import DirSummary (dirSummaryWithMetrics)
+
 
 main :: IO ()
-main = do
-  putStrLn "Hello, Haskell!"
-  MyLib.someFunc
+main = getArgs >>= dirSummaryWithMetrics . head
