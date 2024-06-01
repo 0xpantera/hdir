@@ -21,8 +21,8 @@ data AppMetrics = AppMetrics
 
 newtype Metrics = Metrics { appMetricsStore :: IORef AppMetrics }
 
-metrics :: IO Metrics
-metrics =
+newMetrics :: IO Metrics
+newMetrics =
     let
         emptyAppMetrics = AppMetrics
             { successCount = 0
@@ -73,11 +73,11 @@ displayMetrics (Metrics metricsStore) = do
 
 printMetrics :: IO ()
 printMetrics =
-    appMetricsStore <$> metrics >>= readIORef >>= print
+    appMetricsStore <$> newMetrics >>= readIORef >>= print
 
 incSuccess :: IO ()
 incSuccess =
-    appMetricsStore <$> metrics >>= flip modifyIORef incSuccess
+    appMetricsStore <$> newMetrics >>= flip modifyIORef incSuccess
     where
         incSuccess m =
             m { successCount = 1 + successCount m}
