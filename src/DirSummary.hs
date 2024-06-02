@@ -5,7 +5,7 @@ import Control.Exception (IOException, handle)
 import Control.Monad (join, void, when, unless)
 import qualified Data.ByteString as BS
 import Data.Foldable (for_)
-import Data.IORef (modifyIORef, newIORef, readIORef, writeIORef)
+import Data.IORef (modifyIORef, modifyIORef', newIORef, readIORef, writeIORef)
 import Data.List (isSuffixOf)
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set (empty, insert, member)
@@ -112,7 +112,7 @@ dirSummaryWithMetrics root = do
                 addCharToHist hist letter =
                     Map.insertWith (+) letter 1 hist
                 newHist = T.foldl' addCharToHist oldHistogram contents
-            writeIORef histogramRef newHist
+            modifyIORef' histogramRef (const newHist)
     histogram <- readIORef histogramRef
     putStrLn "Histogram Data:"
     for_ (Map.toList histogram) $ \(letter, count) ->
