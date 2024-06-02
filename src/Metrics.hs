@@ -69,7 +69,7 @@ displayMetrics (Metrics metricsStore) = do
     putStrLn $ "successes: " <> show successCount
     putStrLn $ "failures: " <> show failureCount
     for_ (Map.toList callDuration) $ \(functionName, timing) ->
-        putStrLn $ printf "Time spent in \"%s\": $d" functionName timing
+        putStrLn $ printf "Time spent in \"%s\": %d" functionName timing
 
 printMetrics :: IO ()
 printMetrics =
